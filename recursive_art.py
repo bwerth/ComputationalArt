@@ -2,7 +2,7 @@
 
 import random
 from PIL import Image
-
+import math
 
 def build_random_function(min_depth, max_depth):
     """ Builds a random function of depth at least min_depth and depth
@@ -16,9 +16,20 @@ def build_random_function(min_depth, max_depth):
                  these functions)
     """
     # TODO: implement this
-    pass
-
-
+    operations = ['x','y','prod','avg','cos_pi','sin_pi']
+    if max_depth is 0:
+        index = random.randint(0,1)
+    elif min_depth <= 0:
+        index = random.randint(0,5)
+    else:
+        index = random.randint(0,3)
+    if index <= 1:
+        return [operations[index]]
+    elif index <=3 and index >=2:
+        return [operations[index],build_random_function(min_depth-1,max_depth-1),build_random_function(min_depth-1,max_depth-1)]
+    else:
+        return [operations[index],build_random_function(min_depth-1,max_depth-1)] 
+    
 def evaluate_random_function(f, x, y):
     """ Evaluate the random function f with inputs x,y
         Representation of the function f is defined in the assignment writeup
@@ -32,9 +43,21 @@ def evaluate_random_function(f, x, y):
         -0.5
         >>> evaluate_random_function(["y"],0.1,0.02)
         0.02
+        >>> evaluate_random_function(['avg',['x'],['y']],1,1)
+        1.0
     """
-    # TODO: implement this
-    pass
+    if f[0] is 'prod':
+        return evaluate_random_function(f[1],x,y)*evaluate_random_function(f[2],x,y)
+    elif f[0] is 'avg':
+        return .5*(evaluate_random_function(f[1],x,y)+evaluate_random_function(f[2],x,y))
+    elif f[0] is 'sin_pi':
+        return math.sin(evaluate_random_function(f[1],x,y))
+    elif f[0] is 'cos_pi':
+        return math.cos(evaluate_random_function(f[1],x,y)) 
+    elif f[0] is 'x':
+        return x
+    else:
+        return y
 
 
 def remap_interval(val,
@@ -64,8 +87,9 @@ def remap_interval(val,
         >>> remap_interval(5, 4, 6, 1, 2)
         1.5
     """
-    # TODO: implement this
-    pass
+    val_fraction = float(val)/(abs(input_interval_end)+abs(input_interval_start))
+    val_weighted = val_fraction*(output_interval_end-output_interval_start)+output_interval_start
+    return val_weighted
 
 
 def color_map(val):
@@ -85,8 +109,8 @@ def color_map(val):
         191
     """
     # NOTE: This relies on remap_interval, which you must provide
-    color_code = remap_interval(val, -1, 1, 0, 255)
-    return int(color_code)
+    color_code = remap_interval(val, -1.0, 1.0, 0.0, 255.0)
+    return int(color_code+127.5)
 
 
 def test_image(filename, x_size=350, y_size=350):
@@ -116,9 +140,9 @@ def generate_art(filename, x_size=350, y_size=350):
         x_size, y_size: optional args to set image dimensions (default: 350)
     """
     # Functions for red, green, and blue channels - where the magic happens!
-    red_function = ["x"]
-    green_function = ["y"]
-    blue_function = ["x"]
+    red_function = build_random_function(2,9)
+    green_function = build_random_function(7,24)
+    blue_function = build_random_function(4,13)
 
     # Create image and loop over all pixels
     im = Image.new("RGB", (x_size, y_size))
@@ -143,8 +167,8 @@ if __name__ == '__main__':
     # Create some computational art!
     # TODO: Un-comment the generate_art function call after you
     #       implement remap_interval and evaluate_random_function
-    # generate_art("myart.png")
+    generate_art("example2.png")
 
     # Test that PIL is installed correctly
     # TODO: Comment or remove this function call after testing PIL install
-    test_image("noise.png")
+    # test_image("noise.png")
