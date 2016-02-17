@@ -15,17 +15,18 @@ def build_random_function(min_depth, max_depth):
                  (see assignment writeup for details on the representation of
                  these functions)
     """
-    # TODO: implement this
-    operations = ['x','y','prod','avg','cos_pi','sin_pi']
-    if max_depth is 0:
+    operations = ['x','y','prod','avg','cubed','cos_pi','sin_pi','squared']
+    #If max depth is zero, then the function has to end
+    if max_depth == 0:
         index = random.randint(0,1)
+    #If min depth is less than or equal to zero then the function can end
     elif min_depth <= 0:
-        index = random.randint(0,5)
+        index = random.randint(0,7)
     else:
-        index = random.randint(2,5)
+        index = random.randint(2,7)
     if index <= 1:
         return [operations[index]]
-    elif index <=3 and index >=2:
+    elif index <=3:
         return [operations[index],build_random_function(min_depth-1,max_depth-1),build_random_function(min_depth-1,max_depth-1)]
     else:
         return [operations[index],build_random_function(min_depth-1,max_depth-1)] 
@@ -43,18 +44,25 @@ def evaluate_random_function(f, x, y):
         -0.5
         >>> evaluate_random_function(["y"],0.1,0.02)
         0.02
-        >>> evaluate_random_function(['avg',['x'],['y']],1,1)
+        >>> evaluate_random_function(['avg',['cubed',['x']],['y']],1,2)
+        1.5
+        >>> evaluate_random_function(['cubed',['x']],1.0,3)
         1.0
     """
-    if f[0] is 'prod':
+    #This block of code checks the first item of the given function and executes the operation for the designated string
+    if f[0] == 'prod':
         return evaluate_random_function(f[1],x,y)*evaluate_random_function(f[2],x,y)
-    elif f[0] is 'avg':
+    elif f[0] == 'avg':
         return .5*(evaluate_random_function(f[1],x,y)+evaluate_random_function(f[2],x,y))
-    elif f[0] is 'sin_pi':
+    elif f[0] == 'cubed':
+        return evaluate_random_function(f[1],x,y)**3.
+    elif f[0] == 'sin_pi':
         return math.sin(evaluate_random_function(f[1],x,y))
-    elif f[0] is 'cos_pi':
+    elif f[0] == 'cos_pi':
         return math.cos(evaluate_random_function(f[1],x,y)) 
-    elif f[0] is 'x':
+    elif f[0] == 'squared':
+        return evaluate_random_function(f[1],x,y)**2.
+    elif f[0] == 'x':
         return x
     else:
         return y
@@ -86,8 +94,10 @@ def remap_interval(val,
         1.0
         >>> remap_interval(5, 4, 6, 1, 2)
         1.5
+        >>> remap_interval(3, -5, 5, 10, 20)
+        18.0
     """
-    val_fraction = float(val)/(abs(input_interval_end)+abs(input_interval_start))
+    val_fraction = float(val-input_interval_start)/(input_interval_end-input_interval_start)
     val_weighted = val_fraction*(output_interval_end-output_interval_start)+output_interval_start
     return val_weighted
 
@@ -110,7 +120,7 @@ def color_map(val):
     """
     # NOTE: This relies on remap_interval, which you must provide
     color_code = remap_interval(val, -1.0, 1.0, 0.0, 255.0)
-    return int(color_code+127.5)
+    return int(color_code)
 
 
 def test_image(filename, x_size=350, y_size=350):
@@ -140,9 +150,10 @@ def generate_art(filename, x_size=350, y_size=350):
         x_size, y_size: optional args to set image dimensions (default: 350)
     """
     # Functions for red, green, and blue channels - where the magic happens!
-    red_function = build_random_function(2,9)
-    green_function = build_random_function(7,24)
-    blue_function = build_random_function(4,13)
+    red_function = build_random_function(6,9)
+    green_function = build_random_function(7,9)
+    blue_function = build_random_function(8,13)
+    print green_function
 
     # Create image and loop over all pixels
     im = Image.new("RGB", (x_size, y_size))
@@ -167,7 +178,8 @@ if __name__ == '__main__':
     # Create some computational art!
     # TODO: Un-comment the generate_art function call after you
     #       implement remap_interval and evaluate_random_function
-    generate_art("example2.png")
+    for i in range(10):
+        generate_art("testArt%d.png" %i)
 
     # Test that PIL is installed correctly
     # TODO: Comment or remove this function call after testing PIL install
