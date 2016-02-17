@@ -22,7 +22,7 @@ def build_random_function(min_depth, max_depth):
     elif min_depth <= 0:
         index = random.randint(0,5)
     else:
-        index = random.randint(0,3)
+        index = random.randint(2,5)
     if index <= 1:
         return [operations[index]]
     elif index <=3 and index >=2:
