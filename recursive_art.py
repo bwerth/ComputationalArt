@@ -1,4 +1,4 @@
-""" TODO: Put your header comment here """
+""" This code randomly generates computational art. The two functions I defined were squared and cubed which square and cube x.  """
 
 import random
 from PIL import Image
