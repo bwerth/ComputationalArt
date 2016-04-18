@@ -15,57 +15,64 @@ def build_random_function(min_depth, max_depth):
                  (see assignment writeup for details on the representation of
                  these functions)
     """
-    operations = ['x','y','prod','avg','cubed','cos_pi','sin_pi','squared']
+    operations = ['t','x','y','prod','avg','cubed','cos_pi','sin_pi','squared']
     #If max depth is zero, then the function has to end
     if max_depth == 0:
-        index = random.randint(0,1)
+        index = random.randint(0,2)
     #If min depth is less than or equal to zero then the function can end
     elif min_depth <= 0:
-        index = random.randint(0,7)
+        index = random.randint(0,8)
+    #Otherwise, the function cannot end because it has not reached the minimum depth
     else:
-        index = random.randint(2,7)
-    if index <= 1:
+        index = random.randint(3,8)
+    #If the randomly generated index pertains to one of the first three operations in the list
+    if index <= 2:
         return [operations[index]]
-    elif index <=3:
+    #If the index pertains to either the fourth or fifth operations in the list
+    elif index <=4:
         return [operations[index],build_random_function(min_depth-1,max_depth-1),build_random_function(min_depth-1,max_depth-1)]
+    #Otherwise one of the last operations in the list
     else:
         return [operations[index],build_random_function(min_depth-1,max_depth-1)] 
     
-def evaluate_random_function(f, x, y):
+def evaluate_random_function(f, x, y, t):
     """ Evaluate the random function f with inputs x,y
         Representation of the function f is defined in the assignment writeup
 
         f: the function to evaluate
         x: the value of x to be used to evaluate the function
         y: the value of y to be used to evaluate the function
+        t: the frame number
         returns: the function value
 
-        >>> evaluate_random_function(["x"],-0.5, 0.75)
+        >>> evaluate_random_function(["x"],-0.5, 0.75,1)
         -0.5
-        >>> evaluate_random_function(["y"],0.1,0.02)
+        >>> evaluate_random_function(["y"],0.1,0.02,1)
         0.02
-        >>> evaluate_random_function(['avg',['cubed',['x']],['y']],1,2)
+        >>> evaluate_random_function(['avg',['cubed',['x']],['y']],1,2,1)
         1.5
-        >>> evaluate_random_function(['cubed',['x']],1.0,3)
+        >>> evaluate_random_function(['cubed',['x']],1.0,3,1)
         1.0
     """
     #This block of code checks the first item of the given function and executes the operation for the designated string
     if f[0] == 'prod':
-        return evaluate_random_function(f[1],x,y)*evaluate_random_function(f[2],x,y)
+        return evaluate_random_function(f[1],x,y,t)*evaluate_random_function(f[2],x,y,t)
     elif f[0] == 'avg':
-        return .5*(evaluate_random_function(f[1],x,y)+evaluate_random_function(f[2],x,y))
+        return .5*(evaluate_random_function(f[1],x,y,t)+evaluate_random_function(f[2],x,y,t))
     elif f[0] == 'cubed':
-        return evaluate_random_function(f[1],x,y)**3.
+        return evaluate_random_function(f[1],x,y,t)**3.
     elif f[0] == 'sin_pi':
-        return math.sin(evaluate_random_function(f[1],x,y))
+        return math.sin(math.pi*evaluate_random_function(f[1],x,y,t))
     elif f[0] == 'cos_pi':
-        return math.cos(evaluate_random_function(f[1],x,y)) 
+        return math.cos(math.pi*evaluate_random_function(f[1],x,y,t)) 
     elif f[0] == 'squared':
-        return evaluate_random_function(f[1],x,y)**2.
+        return evaluate_random_function(f[1],x,y,t)**2.
     elif f[0] == 'x':
         return x
-    else:
+    elif f[0] == 'y':
         return y
+    else:
+        return t
 
 
 def remap_interval(val,
@@ -143,7 +150,7 @@ def test_image(filename, x_size=350, y_size=350):
     im.save(filename)
 
 
-def generate_art(filename, x_size=350, y_size=350):
+def generate_art(filename, num_frames, x_size=350, y_size=350):
     """ Generate computational art and save as an image file.
 
         filename: string filename for image (should be .png)
@@ -153,22 +160,22 @@ def generate_art(filename, x_size=350, y_size=350):
     red_function = build_random_function(6,9)
     green_function = build_random_function(7,9)
     blue_function = build_random_function(8,13)
-    print green_function
 
-    # Create image and loop over all pixels
-    im = Image.new("RGB", (x_size, y_size))
-    pixels = im.load()
-    for i in range(x_size):
-        for j in range(y_size):
-            x = remap_interval(i, 0, x_size, -1, 1)
-            y = remap_interval(j, 0, y_size, -1, 1)
-            pixels[i, j] = (
-                    color_map(evaluate_random_function(red_function, x, y)),
-                    color_map(evaluate_random_function(green_function, x, y)),
-                    color_map(evaluate_random_function(blue_function, x, y))
-                    )
-
-    im.save(filename)
+    for k in range(num_frames):
+        # Create image and loop over all pixels
+        im = Image.new("RGB", (x_size, y_size))
+        pixels = im.load()
+        t = remap_interval(k, 0, num_frames-1, -1, 1)
+        for i in range(x_size):
+            for j in range(y_size):
+                x = remap_interval(i, 0, x_size, -1, 1)
+                y = remap_interval(j, 0, y_size, -1, 1)
+                pixels[i, j] = (
+                        color_map(evaluate_random_function(red_function, x, y, t)),
+                        color_map(evaluate_random_function(green_function, x, y, t)),
+                        color_map(evaluate_random_function(blue_function, x, y, t))
+                        )
+        im.save(filename + '_' + str(k) + '.png')
 
 
 if __name__ == '__main__':
@@ -178,8 +185,7 @@ if __name__ == '__main__':
     # Create some computational art!
     # TODO: Un-comment the generate_art function call after you
     #       implement remap_interval and evaluate_random_function
-    for i in range(10):
-        generate_art("testArt%d.png" %i)
+    generate_art('frame',100)
 
     # Test that PIL is installed correctly
     # TODO: Comment or remove this function call after testing PIL install
